@@ -76,9 +76,11 @@ DOWNLOAD_DELAY = 0.25
 # IMAGES_URL_FILED = "image_url"
 # start MySQL database configure setting
 MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'robot'
+MYSQL_DB = 'robot'
 MYSQL_USER = 'root'
-MYSQL_PASSWD = '123456'
+MYSQL_PASSWORD = '123456'
+MYSQL_PORT = 3306
+MYSQL_CHARSET = 'utf-8'
 # end of MySQL database configure setting
 
 

@@ -7,6 +7,7 @@
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
 
+from robotwebs import settings
 from robotwebs.items import RobotItemManager
 
 
@@ -34,29 +35,29 @@ class robotImgDownloadPipeline(ImagesPipeline):
 from twisted.enterprise import adbapi
 import pymysql
 
+host = settings.MYSQL_HOST
+user = settings.MYSQL_USER
+psd = settings.MYSQL_PASSWORD
+db = settings.MYSQL_DB
+port = 3306
+use_unicode = True
+charset = settings.MYSQL_CHARSET
+
 
 class MySQLStorePipeline(object):
-    # 数据库参数
-    def __init__(self):
-        dbargs = dict(
-            host='127.0.0.1',
-            db='robot',
-            user='root',
-            passwd='123456',
-            cursorclass=pymysql.cursors.DictCursor,
-            charset='utf8',
-            use_unicode=True
-        )
-        self.dbpool = adbapi.ConnectionPool('MySQLdb', **dbargs)
+
+    @staticmethod
+    def get_connection():
+        return pymysql.connect(host=host, user=user, passwd=psd, db=db, port=port, use_unicode=True, charset="utf8")
 
     '''
     The default pipeline invoke function
     '''
-
     def process_item(self, item, spider):
-        # res = self.dbpool.runInteraction(self.insert_into_information, item)
-        # res = self.dbpool.runInteraction(self.insert_into_infocontent, item)
-        res = self.dbpool.runInteraction(self.insert_into_first_page, item)
+        conn = MySQLStorePipeline.get_connection()
+        self.insert_into_information(conn, item)
+        self.insert_into_infocontent(conn, item)
+        conn.close()
         return item
 
     # 插入的表，此表需要事先建好
@@ -64,35 +65,22 @@ class MySQLStorePipeline(object):
         url = item[RobotItemManager.LINK]
         title = item[RobotItemManager.TITLE]
         summary = item[RobotItemManager.SUMMARY]
-        time = item[RobotItemManager.RELEASE_TIME]
-        conn.execute(
+        time = item[RobotItemManager.RECORD_TIME]
+        cursor = conn.cursor()
+        cursor.execute(
             'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
             (url, title, summary, time)
         )
+        conn.commit()
 
     def insert_into_infocontent(self, conn, item):
-        conn.execute('select info_id from information where info_link = %s', item[RobotItemManager.LINK])
-        result = (conn.fetchone())
-        info_id = int(result["info_id"])
+        cursor = conn.cursor()
+        cursor.execute('select info_id from information where info_link = %s', item[RobotItemManager.LINK])
+        result = (cursor.fetchone())
+        info_id = int(result[0])
         content = item[RobotItemManager.CONTENT]
         content = content[0]
-        conn.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
+        cursor.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
         # conn.execute('insert into infocontent(info_id, info_main) values(%s)', (info_id))
+        conn.commit()
         pass
-
-    def insert_into_first_page(self, conn, item):
-        url = item[RobotItemManager.LINK]
-        title = item[RobotItemManager.TITLE]
-        summary = item[RobotItemManager.SUMMARY]
-        time = item[RobotItemManager.RECORD_TIME]
-        conn.execute(
-            'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
-            (url, title, summary, time)
-        )
-
-        conn.execute('select info_id from information where info_link = %s', item[RobotItemManager.LINK])
-        result = (conn.fetchone())
-        info_id = int(result["info_id"])
-        content = item[RobotItemManager.CONTENT]
-        content = content[0]
-        conn.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))

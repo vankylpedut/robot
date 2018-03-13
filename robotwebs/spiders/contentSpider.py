@@ -13,6 +13,7 @@ class RobotContentSpider(scrapy.Spider):
     allowed_domains = ['robot.ofweek.com']
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
 
+    # 文章列表爬取
     def parse(self, response):
         # sel : 页面源代码
         sel = Selector(response)
@@ -27,6 +28,7 @@ class RobotContentSpider(scrapy.Spider):
             item[RobotItemManager.SUMMARY] = article.xpath('p/span/text()').extract_first("")
             yield Request(url=url, meta={"item": item }, callback=self.parse_articleInfo)
 
+    # 文章爬取
     def parse_articleInfo(self, response):
         sel = Selector(response)
         item = response.meta["item"]
@@ -48,6 +50,7 @@ class RobotContentSpider(scrapy.Spider):
         item[RobotItemManager.PAGE] = page
 
         # 爬取时间
+        # todo 时间爬取移到一级爬取进行，把方法独立出来
         date_str = sel.xpath('//span [@class="sdate"]/text()').extract()
         date_str[0] = date_str[0].replace('\r', '').replace('\n', '').replace('\t', '').replace('  ', '')
         time = datetime.datetime.strptime(date_str[0], "%Y-%m-%d %H:%M")
