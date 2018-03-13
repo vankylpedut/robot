@@ -1,6 +1,5 @@
-import re
-
 import datetime
+
 import scrapy
 from scrapy import Selector, Request
 

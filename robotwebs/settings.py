@@ -64,11 +64,11 @@ ROBOTSTXT_OBEY = False
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
 
-# Configure item pipelines
+# Configure item pipeline
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'robotwebs.pipelines.robotImgDownloadPipeline': 300,
-   'robotwebs.pipelines.MySQLStorePipeline': 300,
+   'robotwebs.pipeline.robot_ofweek_pipeline.RobotOfweekPipeline': 300,
 }
 IMAGES_STORE = 'E:/img'
 # IMAGES_EXPIRES = 90
