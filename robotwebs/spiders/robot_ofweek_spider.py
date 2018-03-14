@@ -11,6 +11,13 @@ class RobotContentSpider(scrapy.Spider):
     name = 'robot'
     allowed_domains = ['robot.ofweek.com']
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
+    # pages = []
+    # start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
+    # pages.append(start_url)
+    # for i in range(2, 3):
+    #     newspage = "http://robot.ofweek.com/CATList-8321200-8100-robot-%s.html" % i
+    #     pages.append(newspage)
+    # start_urls = pages
 
     # 文章列表爬取
     def parse(self, response):

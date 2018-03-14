@@ -1,5 +1,5 @@
-from items import RobotItemManager
-from pipeline.mysql import Mysql
+from robotwebs.items import RobotItemManager
+from robotwebs.pipeline.mysql import Mysql
 
 
 class RobotOfweekPipeline(object):
@@ -9,8 +9,12 @@ class RobotOfweekPipeline(object):
     '''
     def process_item(self, item, spider):
         conn = Mysql.get_connection()
-        self.insert_into_information(conn, item)
-        self.insert_into_infocontent(conn, item)
+        judge = item[RobotItemManager.JUDGE]
+        if judge == 0:
+            self.insert_into_information(conn, item)
+            self.insert_into_infocontent(conn, item)
+        else:
+            self.insert_into_infocontent(conn, item)
         conn.close()
         return item
 

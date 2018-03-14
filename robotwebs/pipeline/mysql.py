@@ -1,6 +1,6 @@
 import pymysql
 
-import settings
+from robotwebs import settings
 
 host = settings.MYSQL_HOST
 user = settings.MYSQL_USER
