@@ -33,11 +33,14 @@ class RobotOfweekPipeline(object):
 
     def insert_into_infocontent(self, conn, item):
         cursor = conn.cursor()
-        cursor.execute('select info_id from information where info_link = %s', item[RobotOfWeekItem.LINK])
+        cursor.execute('select info_id from information where info_title = %s', item[RobotOfWeekItem.TITLE])
         result = (cursor.fetchone())
-        info_id = int(result[0])
-        content = item[RobotOfWeekItem.CONTENT]
-        content = content[0]
-        cursor.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
-        conn.commit()
+        if result is not None:
+            info_id = int(result[0])
+            content = item[RobotOfWeekItem.CONTENT]
+            content = content[0]
+            cursor.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
+            conn.commit()
+        else:
+            print("查询不到该记录：" + item[RobotOfWeekItem.TITLE])
         pass
