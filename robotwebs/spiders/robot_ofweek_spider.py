@@ -3,7 +3,7 @@ import datetime
 import scrapy
 from scrapy import Selector, Request
 
-from robotwebs.items import RobotContentItem, RobotItemManager
+from robotwebs.items import RobotOfWeekItem
 from robotwebs.settings import IMAGES_STORE
 
 
@@ -27,12 +27,12 @@ class RobotContentSpider(scrapy.Spider):
 
         articles = sel.xpath('//div [@class="list_model"]//div [@class="model_right"]')
         for article in articles:
-            item = RobotContentItem()
+            item = RobotOfWeekItem()
             # url
             url = article.xpath('h3//a/@href').extract_first("")
-            item[RobotItemManager.LINK] = url
+            item[RobotOfWeekItem.LINK] = url
             # 概述
-            item[RobotItemManager.SUMMARY] = article.xpath('p/span/text()').extract_first("")
+            item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
             yield Request(url=url, meta={"item": item }, callback=self.parse_articleInfo)
 
     # 文章爬取
@@ -41,9 +41,9 @@ class RobotContentSpider(scrapy.Spider):
         item = response.meta["item"]
         # 标题
         title = sel.xpath('//div [@class="article_left"]/h1/text()').extract()
-        item[RobotItemManager.TITLE] = title[0]
+        item[RobotOfWeekItem.TITLE] = title[0]
         # 导读
-        item[RobotItemManager.READING_GUIDANCE] = sel.xpath('//div [@class="simple"]/p').xpath('string(.)').extract()
+        item[RobotOfWeekItem.READING_GUIDANCE] = sel.xpath('//div [@class="simple"]/p').xpath('string(.)').extract()
         # 提取页码
         page_url = response.url
         page = []
@@ -54,7 +54,7 @@ class RobotContentSpider(scrapy.Spider):
         else:
             page[0] = 1
             item['judge'] = 1
-        item[RobotItemManager.PAGE] = page
+        item[RobotOfWeekItem.PAGE] = page
 
         # 爬取时间
         # todo 时间爬取移到一级爬取进行，把方法独立出来
@@ -64,10 +64,10 @@ class RobotContentSpider(scrapy.Spider):
         time = time.strftime("%Y-%m-%d %H:%M")
         # print(time)
         type(time)
-        item[RobotItemManager.RECORD_TIME] = time
+        item[RobotOfWeekItem.RECORD_TIME] = time
 
         # 爬去文章内容
-        item[RobotItemManager.CONTENT] = sel.xpath('//div [@id="articleC"]').extract()
+        item[RobotOfWeekItem.CONTENT] = sel.xpath('//div [@id="articleC"]').extract()
         list_imgs = sel.xpath('//div [@id="articleC"]//img/@src').extract()
         if len(list_imgs) > 0:
             item['image_urls'] = list_imgs
@@ -79,8 +79,8 @@ class RobotContentSpider(scrapy.Spider):
             # image_guid = times + guid
             # image_guid_path为图片文件地址
             image_guid_path = IMAGES_STORE + '/full/' + image_guid
-            if list_imgs[i] in item[RobotItemManager.CONTENT][0]:
-                item[RobotItemManager.CONTENT][0] = item[RobotItemManager.CONTENT][0].replace(list_imgs[i],
+            if list_imgs[i] in item[RobotOfWeekItem.CONTENT][0]:
+                item[RobotOfWeekItem.CONTENT][0] = item[RobotOfWeekItem.CONTENT][0].replace(list_imgs[i],
                                                                                               image_guid_path)  # 第二个参数修改为本地地址
 
         next_page = sel.xpath('//span [@id="nextPage"]/a/@href').extract_first()

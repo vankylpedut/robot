@@ -1,5 +1,5 @@
-from robotwebs.items import RobotItemManager
-from robotwebs.pipeline.mysql import Mysql
+from items import RobotOfWeekItem
+from pipeline.mysql import Mysql
 
 
 class RobotOfweekPipeline(object):
@@ -9,7 +9,7 @@ class RobotOfweekPipeline(object):
     '''
     def process_item(self, item, spider):
         conn = Mysql.get_connection()
-        judge = item[RobotItemManager.JUDGE]
+        judge = item[RobotOfWeekItem.JUDGE]
         if judge == 0:
             self.insert_into_information(conn, item)
             self.insert_into_infocontent(conn, item)
@@ -20,10 +20,10 @@ class RobotOfweekPipeline(object):
 
     # 插入的表，此表需要事先建好
     def insert_into_information(self, conn, item):
-        url = item[RobotItemManager.LINK]
-        title = item[RobotItemManager.TITLE]
-        summary = item[RobotItemManager.SUMMARY]
-        time = item[RobotItemManager.RECORD_TIME]
+        url = item[RobotOfWeekItem.LINK]
+        title = item[RobotOfWeekItem.TITLE]
+        summary = item[RobotOfWeekItem.SUMMARY]
+        time = item[RobotOfWeekItem.RECORD_TIME]
         cursor = conn.cursor()
         cursor.execute(
             'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
@@ -33,10 +33,10 @@ class RobotOfweekPipeline(object):
 
     def insert_into_infocontent(self, conn, item):
         cursor = conn.cursor()
-        cursor.execute('select info_id from information where info_link = %s', item[RobotItemManager.LINK])
+        cursor.execute('select info_id from information where info_link = %s', item[RobotOfWeekItem.LINK])
         result = (cursor.fetchone())
         info_id = int(result[0])
-        content = item[RobotItemManager.CONTENT]
+        content = item[RobotOfWeekItem.CONTENT]
         content = content[0]
         cursor.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
         conn.commit()

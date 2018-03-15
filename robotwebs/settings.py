@@ -68,7 +68,7 @@ ROBOTSTXT_OBEY = False
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'robotwebs.pipelines.robotImgDownloadPipeline': 300,
-   'robotwebs.pipeline.robot_ofweek_pipeline.RobotOfweekPipeline': 300,
+   'robotwebs.pipeline.robot_ofweek_pipeline.RobotOfWeekPipeline': 300,
 }
 IMAGES_STORE = 'E:/img'
 # IMAGES_EXPIRES = 90

@@ -9,7 +9,7 @@
 import scrapy
 
 
-class RobotContentItem(scrapy.Item):
+class RobotOfWeekItem(scrapy.Item):
     # url = scrapy.Field()
     # title = scrapy.Field()
     # content = scrapy.Field()
@@ -33,9 +33,6 @@ class RobotContentItem(scrapy.Item):
     image_paths = scrapy.Field()  #
     page = scrapy.Field()  # 页数
     judge = scrapy.Field()  # 0是不插information，1是插information
-
-
-class RobotItemManager:
     # 命名必须对齐RobotcontentItem字段名
     ITEM = 'item'
     LINK = 'info_link'
