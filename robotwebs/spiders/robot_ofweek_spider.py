@@ -11,6 +11,7 @@ class RobotContentSpider(scrapy.Spider):
     name = 'robot'
     allowed_domains = ['robot.ofweek.com']
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
+    #爬取后面页数的新闻链接
     # pages = []
     # start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
     # pages.append(start_url)
