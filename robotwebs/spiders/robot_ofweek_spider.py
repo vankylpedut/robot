@@ -25,12 +25,17 @@ class RobotContentSpider(scrapy.Spider):
         # sel : 页面源代码
         sel = Selector(response)
 
-        articles = sel.xpath('//div [@class="list_model"]//div [@class="model_right"]')
+        articles = sel.xpath('//div [@class="list_model"]//div [contains(@class, "model_right") or contains(@class, "model_right model_right2")]')
+        # articles = sel.xpath('//div [@class="list_model"]')
+        # articles = sel.xpath('//div[contains(@class, "list_model")]')
         for article in articles:
             item = RobotOfWeekItem()
             # url
             url = article.xpath('h3//a/@href').extract_first("")
+            # url = article.xpath('//div//h3//a/@href').extract_first("")
             item[RobotOfWeekItem.LINK] = url
+            print(url)
+            self.logger.info(url)
             # 概述
             item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
             yield Request(url=url, meta={"item": item }, callback=self.parse_articleInfo)

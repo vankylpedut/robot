@@ -1,5 +1,6 @@
 from items import RobotOfWeekItem
 from pipeline.mysql import Mysql
+import logging
 
 
 class RobotOfweekPipeline(object):
@@ -10,11 +11,13 @@ class RobotOfweekPipeline(object):
     def process_item(self, item, spider):
         conn = Mysql.get_connection()
         judge = item[RobotOfWeekItem.JUDGE]
-        if judge == 0:
+        if judge == 1:
             self.insert_into_information(conn, item)
             self.insert_into_infocontent(conn, item)
+            pass
         else:
             self.insert_into_infocontent(conn, item)
+            pass
         conn.close()
         return item
 

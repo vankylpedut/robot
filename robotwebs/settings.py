@@ -105,3 +105,5 @@ MYSQL_CHARSET = 'utf-8'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+LOG_FILE = "mySpider.log"
+LOG_LEVEL = "INFO"
