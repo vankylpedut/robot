@@ -1,8 +1,10 @@
 from datetime import datetime
 
-import settings
-from tool.mysql import MysqlTool
-from tool.variable_settings import VariableSettings
+import os
+
+import robotwebs.settings
+from robotwebs.tool.mysql import MysqlTool
+from robotwebs.tool.variable_settings import VariableSettings
 
 # 截止时间获取
 str_time = settings.DEADLINE_TIME
@@ -22,4 +24,11 @@ else:
         VariableSettings.TIME_LIST = []
 print(VariableSettings.DEADLINE_TIME)
 print(VariableSettings.TIME_LIST)
+pass
+
+# 创建日志路径
+path = settings.LOG_FILE
+path = path[0:path.rfind('\\')]
+if os.path.exists(path) is not True:
+    os.mkdir(path)
 pass

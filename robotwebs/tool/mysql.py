@@ -1,9 +1,6 @@
-import datetime
-
 import pymysql
 
 from robotwebs import settings
-from tool.variable_settings import VariableSettings
 
 host = settings.MYSQL_HOST
 user = settings.MYSQL_USER

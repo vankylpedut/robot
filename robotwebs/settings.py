@@ -109,7 +109,7 @@ MYSQL_CHARSET = 'utf-8'
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # 文件日志开关
-LOG_FILE = "log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
+LOG_FILE = "robotwebs\log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
 LOG_LEVEL = "INFO"
 
 # 时间参数控制，主要控制爬取的文章发布时间。

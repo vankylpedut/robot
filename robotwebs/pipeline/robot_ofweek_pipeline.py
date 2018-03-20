@@ -1,7 +1,7 @@
 import re
 
-from items import RobotOfWeekItem
-from tool.mysql import MysqlTool
+from robotwebs.items import RobotOfWeekItem
+from robotwebs.tool.mysql import MysqlTool
 
 
 class RobotOfweekPipeline(object):

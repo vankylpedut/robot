@@ -6,7 +6,7 @@ from scrapy import Selector, Request
 
 from robotwebs.items import RobotOfWeekItem
 from robotwebs.settings import IMAGES_STORE
-from tool.variable_settings import VariableSettings
+from robotwebs.tool.variable_settings import VariableSettings
 
 
 class RobotContentSpider(scrapy.Spider):
