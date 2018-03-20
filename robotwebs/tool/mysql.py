@@ -1,3 +1,5 @@
+import datetime
+
 import pymysql
 
 from robotwebs import settings
@@ -19,21 +21,42 @@ class MysqlTool(object):
         return pymysql.connect(host=host, user=user, passwd=psd, db=db, port=port, use_unicode=True, charset="utf8")
 
     @staticmethod
-    def get_info_record_time():
+    def get_info_record_time(num=50):
+        '''
+        获取最近50条文章的时间集合，把最旧的时间作为时间底线。（避免漏爬）
+        获取时间底线（只爬取时间底线以上的文章。）
+        :return:
+        '''
         conn = MysqlTool.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            'select info_record_time from information order by info_record_time limit 50'
+            'select info_record_time from information order by info_record_time limit %s', num
         )
         result = cursor.fetchall()
-        if result is not None:
-            timelist = []
-            VariableSettings.DEADLINE_TIME = result[0][0]
-            for tuple in result:
-                for time in tuple:
-                    timelist.append(time)
-            VariableSettings.TIME_LIST = timelist
         conn.close()
+        return result
 
+    @staticmethod
+    def get_limit_info_record_time(time):
+        '''
+        获取最近50条文章的时间集合，把最旧的时间作为时间底线。（避免漏爬）
+        获取时间底线（只爬取时间底线以上的文章。）
+        :return:
+        '''
+        conn = MysqlTool.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+           'select info_record_time from information where info_record_time > %s', time
+        )
+        result = cursor.fetchall()
+        conn.close()
+        return result
 
-
+    @staticmethod
+    def tuple_tuple_to_list(tuples):
+        list = []
+        if len(tuples) > 0:
+            for tuple in tuples:
+                for time in tuple:
+                    list.append(time)
+        return list

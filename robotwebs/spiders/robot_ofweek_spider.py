@@ -12,6 +12,7 @@ from tool.variable_settings import VariableSettings
 class RobotContentSpider(scrapy.Spider):
     name = 'robot'
     allowed_domains = ['robot.ofweek.com']
+    bash_url = 'http://robot.ofweek.com/'
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
     # 爬取后面页数的新闻链接
     pages = []
@@ -23,15 +24,27 @@ class RobotContentSpider(scrapy.Spider):
     #     pages.append(newspage)
     # start_urls = pages
 
-    # 文章列表爬取
     def parse(self, response):
+        yield Request(url=self.start_url, callback=self.parse_listInfo)
+
+    # 文章列表爬取
+    def parse_listInfo(self, response):
+        is_request_flag = False  # 下一页是否已经放入待爬列表
+        tolerance_value = 2  # 容忍值
+        print('文章清单')
         # sel : 页面源代码
         sel = Selector(response)
         articles = sel.xpath(
             '//div [@class="list_model"]//div [contains(@class, "model_right")]')
         for article in articles:
+            is_exist = True  # 是否已存在
+            is_next_page = False  # 是否爬取下一页
+            is_under_deadline = False  # 是否在限期下面,若在，停止循环
+            # 解析获取时间
             time = self.parse_info_record_time(article)
-            if self.is_time_exist(time) is not True:
+            is_exist, is_next_page, is_under_deadline = self.is_time_exist(time)
+            # 通过时间判断该文章是否已存进数据库
+            if is_exist is not True:
                 item = RobotOfWeekItem()
                 # url
                 url = article.xpath('h3//a/@href').extract_first("")
@@ -42,11 +55,16 @@ class RobotContentSpider(scrapy.Spider):
                 # 发布时间
                 item[RobotOfWeekItem.RECORD_TIME] = time
                 yield Request(url=url, meta={"item": item}, callback=self.parse_articleInfo)
-            else:
-                # print("数据库已存在")
-                pass
+            if is_next_page and is_request_flag is not True:
+                next_page = self.bash_url + (sel.xpath("//div [@class='page']//a[last()]/@href").extract())[0]
+                yield Request(url=next_page, callback=self.parse_listInfo)
+                is_request_flag = True
+            if is_under_deadline:
+                tolerance_value -= 1
+                if tolerance_value < 0:
+                    break
 
-    # 文章爬取
+    # 文章页面爬取
     def parse_articleInfo(self, response):
         sel = Selector(response)
         item = response.meta["item"]
@@ -132,10 +150,21 @@ class RobotContentSpider(scrapy.Spider):
         # type(time)
         return time
 
+    # 判断文章是否以爬取
     def is_time_exist(self, time):
+        '''
+        通过文章的发布时间判断是否已经存在于数据库
+        :param time:
+        :return:
+        '''
+        is_exist = True  # 是否已存在
+        is_next_page = False  # 是否爬取下一页
+        is_under_deadline = False  # 是否在限期下面
         if VariableSettings.DEADLINE_TIME > time:
-            return True
+            is_under_deadline = True
         elif VariableSettings.TIME_LIST.__contains__(time):
-            return True
+            is_next_page = True
         else:
-            return False
+            is_exist = False
+            is_next_page = True
+        return is_exist, is_next_page, is_under_deadline

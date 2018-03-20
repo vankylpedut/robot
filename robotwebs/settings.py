@@ -108,7 +108,11 @@ MYSQL_CHARSET = 'utf-8'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-# LOG_FILE = "log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
-# LOG_LEVEL = "INFO"
+# 文件日志开关
+LOG_FILE = "log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
+LOG_LEVEL = "INFO"
 
-LATEST_TIME = 'time'
+# 时间参数控制，主要控制爬取的文章发布时间。
+IS_FORCE = True  # 是否强制按照这个时间要求
+DEADLINE_TIME = '2018-3-20 09:00'  # 若数据库没有数据时,该时间往后为爬取的时间范围。
+DATETIME_FORMAT = '%Y-%m-%d %H:%M'  # 时间格式

@@ -1,3 +1,5 @@
+import re
+
 from items import RobotOfWeekItem
 from tool.mysql import MysqlTool
 
@@ -46,4 +48,8 @@ class RobotOfweekPipeline(object):
             conn.commit()
         else:
             print("查询不到该记录：" + item[RobotOfWeekItem.TITLE])
+            result = re.match('http://robot.ofweek.com/\d+-\d+/ART-\d+-\d+-\d+.html$').group()
+            if result is not None:
+                self.insert_into_information(conn, item)
+                self.insert_into_infocontent(conn, item)
         pass
