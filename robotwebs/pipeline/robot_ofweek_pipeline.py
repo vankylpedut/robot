@@ -1,6 +1,5 @@
 from items import RobotOfWeekItem
-from pipeline.mysql import Mysql
-import logging
+from tool.mysql import MysqlTool
 
 
 class RobotOfweekPipeline(object):
@@ -9,7 +8,7 @@ class RobotOfweekPipeline(object):
     The default pipeline invoke function
     '''
     def process_item(self, item, spider):
-        conn = Mysql.get_connection()
+        conn = MysqlTool.get_connection()
         judge = item[RobotOfWeekItem.JUDGE]
         if judge == 1:
             self.insert_into_information(conn, item)
@@ -29,7 +28,7 @@ class RobotOfweekPipeline(object):
         time = item[RobotOfWeekItem.RECORD_TIME]
         cursor = conn.cursor()
         cursor.execute(
-            'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
+            'insert into information(info_link, info_title, info_summary, info_record_time) values(%s,%s,%s,%s)',
             (url, title, summary, time)
         )
         conn.commit()
@@ -40,9 +39,10 @@ class RobotOfweekPipeline(object):
         result = (cursor.fetchone())
         if result is not None:
             info_id = int(result[0])
-            content = item[RobotOfWeekItem.CONTENT]
-            content = content[0]
-            cursor.execute('insert into infocontent(info_id, info_main) values(%s, %s)', (info_id, content))
+            content = item[RobotOfWeekItem.CONTENT][0]
+            page = item[RobotOfWeekItem.PAGE]
+            cursor.execute('insert into infocontent(info_id, info_main, current_page) values(%s, %s, %s)',
+                           (info_id, content, page))
             conn.commit()
         else:
             print("查询不到该记录：" + item[RobotOfWeekItem.TITLE])

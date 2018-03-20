@@ -1,19 +1,22 @@
 import datetime
+import re
 
 import scrapy
 from scrapy import Selector, Request
 
 from robotwebs.items import RobotOfWeekItem
 from robotwebs.settings import IMAGES_STORE
+from tool.variable_settings import VariableSettings
 
 
 class RobotContentSpider(scrapy.Spider):
     name = 'robot'
     allowed_domains = ['robot.ofweek.com']
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
-    #爬取后面页数的新闻链接
-    # pages = []
-    # start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
+    # 爬取后面页数的新闻链接
+    pages = []
+    start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
+
     # pages.append(start_url)
     # for i in range(2, 3):
     #     newspage = "http://robot.ofweek.com/CATList-8321200-8100-robot-%s.html" % i
@@ -24,21 +27,24 @@ class RobotContentSpider(scrapy.Spider):
     def parse(self, response):
         # sel : 页面源代码
         sel = Selector(response)
-
-        articles = sel.xpath('//div [@class="list_model"]//div [contains(@class, "model_right") or contains(@class, "model_right model_right2")]')
-        # articles = sel.xpath('//div [@class="list_model"]')
-        # articles = sel.xpath('//div[contains(@class, "list_model")]')
+        articles = sel.xpath(
+            '//div [@class="list_model"]//div [contains(@class, "model_right")]')
         for article in articles:
-            item = RobotOfWeekItem()
-            # url
-            url = article.xpath('h3//a/@href').extract_first("")
-            # url = article.xpath('//div//h3//a/@href').extract_first("")
-            item[RobotOfWeekItem.LINK] = url
-            print(url)
-            self.logger.info(url)
-            # 概述
-            item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
-            yield Request(url=url, meta={"item": item }, callback=self.parse_articleInfo)
+            time = self.parse_info_record_time(article)
+            if self.is_time_exist(time) is not True:
+                item = RobotOfWeekItem()
+                # url
+                url = article.xpath('h3//a/@href').extract_first("")
+                item[RobotOfWeekItem.LINK] = url
+                print(url)
+                # 概述
+                item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
+                # 发布时间
+                item[RobotOfWeekItem.RECORD_TIME] = time
+                yield Request(url=url, meta={"item": item}, callback=self.parse_articleInfo)
+            else:
+                # print("数据库已存在")
+                pass
 
     # 文章爬取
     def parse_articleInfo(self, response):
@@ -62,32 +68,12 @@ class RobotContentSpider(scrapy.Spider):
         item[RobotOfWeekItem.PAGE] = page
 
         # 爬取时间
-        # todo 时间爬取移到一级爬取进行，把方法独立出来
-        date_str = sel.xpath('//span [@class="sdate"]/text()').extract()
-        date_str[0] = date_str[0].replace('\r', '').replace('\n', '').replace('\t', '').replace('  ', '')
-        time = datetime.datetime.strptime(date_str[0], "%Y-%m-%d %H:%M")
-        time = time.strftime("%Y-%m-%d %H:%M")
-        # print(time)
-        type(time)
-        item[RobotOfWeekItem.RECORD_TIME] = time
+        self.parse_info_record_time2(item, sel)
 
-        # 爬去文章内容
-        item[RobotOfWeekItem.CONTENT] = sel.xpath('//div [@id="articleC"]').extract()
-        list_imgs = sel.xpath('//div [@id="articleC"]//img/@src').extract()
-        if len(list_imgs) > 0:
-            item['image_urls'] = list_imgs
-        else:
-            item['image_urls'] = []
-        for i in range(len(list_imgs)):
-            # image_guid为图片文件名称
-            image_guid = list_imgs[i].split('/')[-1]
-            # image_guid = times + guid
-            # image_guid_path为图片文件地址
-            image_guid_path = IMAGES_STORE + '/full/' + image_guid
-            if list_imgs[i] in item[RobotOfWeekItem.CONTENT][0]:
-                item[RobotOfWeekItem.CONTENT][0] = item[RobotOfWeekItem.CONTENT][0].replace(list_imgs[i],
-                                                                                              image_guid_path)  # 第二个参数修改为本地地址
+        # 爬取文章内容
+        self.parse_article_cotent(item, sel)
 
+        # 判断正文是否有下一页
         next_page = sel.xpath('//span [@id="nextPage"]/a/@href').extract_first()
         next_page = response.urljoin(next_page)
 
@@ -106,3 +92,50 @@ class RobotContentSpider(scrapy.Spider):
         # yield scrapy.Request(url=item['url'], callback=self.parse)
         # for i in range(len(item['url'])):
         #     yield scrapy.Request(url=item['url'][i], callback=self.parse)
+
+    # 爬取文章内容
+    def parse_article_cotent(self, item, sel):
+        item[RobotOfWeekItem.CONTENT] = sel.xpath('//div [@id="articleC"]').extract()
+        list_imgs = sel.xpath('//div [@id="articleC"]//img/@src').extract()
+        if len(list_imgs) > 0:
+            item['image_urls'] = list_imgs
+        else:
+            item['image_urls'] = []
+        for i in range(len(list_imgs)):
+            # image_guid为图片文件名称
+            image_guid = list_imgs[i].split('/')[-1]
+            # image_guid = times + guid
+            # image_guid_path为图片文件地址
+            image_guid_path = IMAGES_STORE + '/full/' + image_guid
+            if list_imgs[i] in item[RobotOfWeekItem.CONTENT][0]:
+                item[RobotOfWeekItem.CONTENT][0] = item[RobotOfWeekItem.CONTENT][0].replace(list_imgs[i],
+                                                                                            image_guid_path)  # 第二个参数修改为本地地址
+
+    # 爬取二级界面时间
+    def parse_info_record_time2(self, item, sel):
+        date_str = sel.xpath('//span [@class="sdate"]/text()').extract()
+        date_str[0] = date_str[0].replace('\r', '').replace('\n', '').replace('\t', '').replace('  ', '')
+        time = datetime.datetime.strptime(date_str[0], "%Y-%m-%d %H:%M")
+        time = time.strftime("%Y-%m-%d %H:%M")
+        # print(time)
+        type(time)
+        item[RobotOfWeekItem.RECORD_TIME] = time
+
+    # 爬取一级界面时间
+    def parse_info_record_time(self, sel):
+        date_str = sel.xpath('div [@class="tag"]//span [@class="date"]/text()').extract()
+        matchObj = re.search('\d+-\d+-\d+ \d+:\d+', date_str[len(date_str) - 1])
+        strtime = matchObj.group()
+        time = datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M")
+        # time = time.strftime("%Y-%m-%d %H:%M")
+        # print(time)
+        # type(time)
+        return time
+
+    def is_time_exist(self, time):
+        if VariableSettings.DEADLINE_TIME > time:
+            return True
+        elif VariableSettings.TIME_LIST.__contains__(time):
+            return True
+        else:
+            return False

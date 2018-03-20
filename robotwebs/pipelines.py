@@ -21,7 +21,7 @@ class robotImgDownloadPipeline(ImagesPipeline):
         return item
 
     def file_path(self, request, response=None, info=None):
-        open("image_urls.txt", "a").write(request.url + "\n")
+        open("log\image_urls.txt", "a").write(request.url + "\n")
         image_guid = request.url.split('/')[-1]
         # times = time.strftime("%Y%m%d%H%M%S", time.localtime())
         # image_guid = times + guid

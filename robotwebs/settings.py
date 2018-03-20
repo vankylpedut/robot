@@ -8,6 +8,9 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
+from calendar import calendar
+
+import time
 
 BOT_NAME = 'robotwebs'
 
@@ -105,5 +108,7 @@ MYSQL_CHARSET = 'utf-8'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-LOG_FILE = "mySpider.log"
-LOG_LEVEL = "INFO"
+# LOG_FILE = "log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
+# LOG_LEVEL = "INFO"
+
+LATEST_TIME = 'time'
