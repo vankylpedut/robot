@@ -27,7 +27,7 @@ class MysqlTool(object):
         conn = MysqlTool.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            'select info_record_time from information order by info_record_time limit %s', num
+            'select info_record_time from information order by info_record_time desc limit %s', num
         )
         result = cursor.fetchall()
         conn.close()
