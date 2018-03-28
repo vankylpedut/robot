@@ -32,7 +32,6 @@ sep = os.path.sep  # 获取系统分割符
 wp = os.getcwd()
 lp = settings.LOG_FILE
 lp = lp[0:lp.rfind('/')].replace('/', sep)
-
 path = wp + sep + lp
 if os.path.exists(path) is not True:
     os.makedirs(path)

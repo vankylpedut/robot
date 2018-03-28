@@ -13,11 +13,11 @@ class RobotOfweekPipeline(object):
         conn = MysqlTool.get_connection()
         judge = item[RobotOfWeekItem.JUDGE]
         if judge == 1:
-            self.insert_into_information(conn, item)
-            self.insert_into_infocontent(conn, item)
+            # self.insert_into_information(conn, item)
+            # self.insert_into_infocontent(conn, item)
             pass
         else:
-            self.insert_into_infocontent(conn, item)
+            # self.insert_into_infocontent(conn, item)
             pass
         conn.close()
         return item

@@ -70,10 +70,10 @@ ROBOTSTXT_OBEY = False
 # Configure item pipeline
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
+   # 'scrapy.pipelines.images.ImagesPipeline': 300,
    'robotwebs.pipelines.robotImgDownloadPipeline': 300,
    'robotwebs.pipeline.robot_ofweek_pipeline.RobotOfweekPipeline': 300,
 }
-IMAGES_STORE = 'E:/img'
 # IMAGES_EXPIRES = 90
 DOWNLOAD_DELAY = 0.25
 # IMAGES_URL_FILED = "image_url"
@@ -109,10 +109,13 @@ MYSQL_CHARSET = 'utf-8'
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # 文件日志开关
-LOG_FILE = "robotwebs\log\mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
+LOG_FILE = "log/mySpider"+time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())+".log"
 LOG_LEVEL = "INFO"
 
 # 时间参数控制，主要控制爬取的文章发布时间。
 IS_FORCE = False  # 是否强制按照这个时间要求
-DEADLINE_TIME = '2018-3-20 09:00'  # 若数据库没有数据时,该时间往后为爬取的时间范围。
+DEADLINE_TIME = '2018-3-28 09:00'  # 若数据库没有数据时,该时间往后为爬取的时间范围。
 DATETIME_FORMAT = '%Y-%m-%d %H:%M'  # 时间格式
+
+# 图片路径
+IMAGES_STORE = 'img'
