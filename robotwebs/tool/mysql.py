@@ -1,7 +1,6 @@
 import pymysql
 
 from robotwebs import settings
-from robotwebs.sql import mysql_sql
 
 host = settings.MYSQL_HOST
 user = settings.MYSQL_USER
@@ -28,7 +27,7 @@ class MysqlTool(object):
         conn = MysqlTool.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "select info_release_time from information order by info_record_time desc limit %%s", num
+            "select info_release_time from information order by info_record_time desc limit %s", num
         )
         result = cursor.fetchall()
         conn.close()
