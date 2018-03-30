@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 
 import os
 
@@ -7,20 +8,30 @@ from robotwebs.tool.mysql import MysqlTool
 from robotwebs.tool.variable_settings import VariableSettings
 
 # 截止时间获取
-str_time = settings.DEADLINE_TIME
-datetime_format = settings.DATETIME_FORMAT
+if settings.DEADLINE_IS_TODAY is True:
+    # DEADLINE设为今天策略
+    datetime_format = '%Y-%m-%d %H:%M'
+    str_time = time.strftime('%Y-%m-%d', time.localtime(time.time())) + ' 00:00'
+else:
+    # 从settings读取DEADLINE策略
+    datetime_format = settings.DATETIME_FORMAT
+    str_time = settings.DEADLINE_TIME
 deadline_time = datetime.strptime(str_time, datetime_format)
-if settings.IS_FORCE is True:  # settings强制开关已打开，按配置文件时间为准
+
+if settings.IS_FORCE is True:
+    # 根据DEADLINE获取文章
     VariableSettings.DEADLINE_TIME = deadline_time
     result = MysqlTool.get_limit_info_record_time(time=deadline_time)
     VariableSettings.TIME_LIST = MysqlTool.tuple_tuple_to_list(result)
 else:
-    result = MysqlTool.get_info_record_time(30)
+    # 从之前记录获取截止日期
+    result = MysqlTool.get_info_release_time(30)
     length = len(result)
     if length > 0:  # 数据库获取时间
         VariableSettings.DEADLINE_TIME = result[length - 1][0]
         VariableSettings.TIME_LIST = MysqlTool.tuple_tuple_to_list(result)
-    else:  # 数据库没有可获取时间
+    else:
+        # 数据库没有可获取时间,根据DEADLINE获取
         VariableSettings.DEADLINE_TIME = deadline_time
         VariableSettings.TIME_LIST = []
 print(VariableSettings.DEADLINE_TIME)

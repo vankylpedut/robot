@@ -27,10 +27,10 @@ class RobotOfweekPipeline(object):
         url = item[RobotOfWeekItem.LINK]
         title = item[RobotOfWeekItem.TITLE]
         summary = item[RobotOfWeekItem.SUMMARY]
-        time = item[RobotOfWeekItem.RECORD_TIME]
+        time = item[RobotOfWeekItem.RELEASE_TIME]
         cursor = conn.cursor()
         cursor.execute(
-            'insert into information(info_link, info_title, info_summary, info_record_time) values(%s,%s,%s,%s)',
+            'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
             (url, title, summary, time)
         )
         conn.commit()
@@ -43,7 +43,7 @@ class RobotOfweekPipeline(object):
             info_id = int(result[0])
             content = item[RobotOfWeekItem.CONTENT][0]
             page = item[RobotOfWeekItem.PAGE]
-            cursor.execute('insert into infocontent(info_id, info_main, current_page) values(%s, %s, %s)',
+            cursor.execute('insert into info_content(info_id, info_main, current_page) values(%s, %s, %s)',
                            (info_id, content, page))
             conn.commit()
         else:

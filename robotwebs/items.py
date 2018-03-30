@@ -27,7 +27,7 @@ class RobotOfWeekItem(scrapy.Item):
     info_main = scrapy.Field()  # 正文
     reading_guidance = scrapy.Field()  # 导读
     info_summary = scrapy.Field()  # 梗概
-    info_record_time = scrapy.Field()  # 记录时间
+    info_release_time = scrapy.Field()  # 记录时间
     image_urls = scrapy.Field()  #
     images = scrapy.Field()  #
     image_paths = scrapy.Field()  #
@@ -39,7 +39,7 @@ class RobotOfWeekItem(scrapy.Item):
     TITLE = 'info_title'
     CONTENT = 'info_main'
     READING_GUIDANCE = 'reading_guidance'
-    RECORD_TIME = 'info_record_time'
+    RELEASE_TIME = 'info_release_time'
     SUMMARY = 'info_summary'
     PAGE = 'page'
     JUDGE = 'judge'

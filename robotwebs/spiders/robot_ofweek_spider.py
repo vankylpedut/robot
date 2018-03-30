@@ -14,15 +14,9 @@ class RobotContentSpider(scrapy.Spider):
     allowed_domains = ['robot.ofweek.com']
     bash_url = 'http://robot.ofweek.com/'
     start_urls = ['http://robot.ofweek.com/CATList-8321200-8100-robot.html']
-    # 爬取后面页数的新闻链接
-    pages = []
+    # # 爬取后面页数的新闻链接
+    # pages = []
     start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
-
-    # pages.append(start_url)
-    # for i in range(2, 3):
-    #     newspage = "http://robot.ofweek.com/CATList-8321200-8100-robot-%s.html" % i
-    #     pages.append(newspage)
-    # start_urls = pages
 
     def parse(self, response):
         yield Request(url=self.start_url, callback=self.parse_listInfo)
@@ -53,7 +47,7 @@ class RobotContentSpider(scrapy.Spider):
                 # 概述
                 item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
                 # 发布时间
-                item[RobotOfWeekItem.RECORD_TIME] = time
+                item[RobotOfWeekItem.RELEASE_TIME] = time
                 yield Request(url=url, meta={"item": item}, callback=self.parse_articleInfo)
             if is_next_page and is_request_flag is not True:
                 next_page = self.bash_url + (sel.xpath("//div [@class='page']//a[last()]/@href").extract())[0]
@@ -137,7 +131,7 @@ class RobotContentSpider(scrapy.Spider):
         time = time.strftime("%Y-%m-%d %H:%M")
         # print(time)
         type(time)
-        item[RobotOfWeekItem.RECORD_TIME] = time
+        item[RobotOfWeekItem.RELEASE_TIME] = time
 
     # 爬取一级界面时间
     def parse_info_record_time(self, sel):
@@ -145,9 +139,6 @@ class RobotContentSpider(scrapy.Spider):
         matchObj = re.search('\d+-\d+-\d+ \d+:\d+', date_str[len(date_str) - 1])
         strtime = matchObj.group()
         time = datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M")
-        # time = time.strftime("%Y-%m-%d %H:%M")
-        # print(time)
-        # type(time)
         return time
 
     # 判断文章是否以爬取
