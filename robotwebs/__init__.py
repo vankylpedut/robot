@@ -30,7 +30,8 @@ else:
     length = len(result)
     if length > 0:  # 数据库获取时间
         deadline_time = result[length - 1][0]
-        deadline_time = datetime.strptime(deadline_time, datetime_format)
+        if isinstance(deadline_time, str):
+            deadline_time = datetime.strptime(deadline_time, datetime_format)
         time_list = MysqlTool.tuple_tuple_to_list(result)
         time_list = MysqlTool.date_list_str_to_date(time_list, '%Y-%m-%d %H:%M')
     else:

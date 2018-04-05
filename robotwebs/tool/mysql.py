@@ -65,6 +65,7 @@ class MysqlTool(object):
         index = len(list)
         i = 0
         while i < index:
-            list[i] = datetime.strptime(list[i], datetime_format)
+            if isinstance(list[i], str):
+                list[i] = datetime.strptime(list[i], datetime_format)
             i = i + 1
         return list
