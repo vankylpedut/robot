@@ -27,11 +27,16 @@ class RobotOfweekPipeline(object):
         url = item[RobotOfWeekItem.LINK]
         title = item[RobotOfWeekItem.TITLE]
         summary = item[RobotOfWeekItem.SUMMARY]
-        time = item[RobotOfWeekItem.RELEASE_TIME]
+        release_time = item[RobotOfWeekItem.RELEASE_TIME]
+        record_time = item[RobotOfWeekItem.RECORD_TIME]
+        category_name = item[RobotOfWeekItem.CATEGORY_NAME]
+        category_id = item[RobotOfWeekItem.CATEGORY_ID]
         cursor = conn.cursor()
         cursor.execute(
-            'insert into information(info_link, info_title, info_summary, info_release_time) values(%s,%s,%s,%s)',
-            (url, title, summary, time)
+            'insert into '
+            'information(info_link, info_title, info_summary, info_release_time, info_record_time, info_category_id) '
+            'values(%s,%s,%s,%s,%s,%s)',
+            (url, title, summary, release_time, record_time, category_id)
         )
         conn.commit()
 

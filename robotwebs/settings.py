@@ -79,8 +79,8 @@ DOWNLOAD_DELAY = 0.25
 MYSQL_HOST = 'localhost'
 MYSQL_DB = 'robot'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = '123456'
-# MYSQL_PASSWORD = 'Rdcrdc2016'
+# MYSQL_PASSWORD = '123456'
+MYSQL_PASSWORD = 'Rdcrdc2016'
 MYSQL_PORT = 3306
 MYSQL_CHARSET = 'utf-8'
 # end of MySQL database configure setting
@@ -108,8 +108,8 @@ MYSQL_CHARSET = 'utf-8'
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # 文件日志开关
-LOG_FILE = "log/mySpider" + time.strftime("%Y-%m-%d %H-%M-%S", time.localtime()) + ".log"
-LOG_LEVEL = "INFO"
+# LOG_FILE = "log/mySpider" + time.strftime("%Y-%m-%d %H-%M-%S", time.localtime()) + ".log"
+# LOG_LEVEL = "INFO"
 
 # 时间参数控制，主要控制爬取的文章发布时间。
 IS_FORCE = False  # 是否强制按照这个时间要求

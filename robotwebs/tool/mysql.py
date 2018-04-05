@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pymysql
 
 from robotwebs import settings
@@ -43,7 +45,7 @@ class MysqlTool(object):
         conn = MysqlTool.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-           'select info_release_time from information where info_record_time > %s', time
+            'select info_release_time from information where info_record_time > %s', time
         )
         result = cursor.fetchall()
         conn.close()
@@ -56,4 +58,13 @@ class MysqlTool(object):
             for tuple in tuples:
                 for time in tuple:
                     list.append(time)
+        return list
+
+    @staticmethod
+    def date_list_str_to_date(list, datetime_format):
+        index = len(list)
+        i = 0
+        while i < index:
+            list[i] = datetime.strptime(list[i], datetime_format)
+            i = i + 1
         return list

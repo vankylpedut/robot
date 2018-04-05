@@ -1,9 +1,11 @@
 import datetime
+import time
 import re
 
 import scrapy
 from scrapy import Selector, Request
 
+from robotwebs import Category
 from robotwebs.items import RobotOfWeekItem
 from robotwebs.settings import IMAGES_STORE
 from robotwebs.tool.variable_settings import VariableSettings
@@ -18,6 +20,7 @@ class RobotContentSpider(scrapy.Spider):
     # pages = []
     start_url = 'http://robot.ofweek.com/CATList-8321200-8100-robot.html'
 
+    # 启动方法
     def parse(self, response):
         yield Request(url=self.start_url, callback=self.parse_listInfo)
 
@@ -35,25 +38,25 @@ class RobotContentSpider(scrapy.Spider):
             is_next_page = False  # 是否爬取下一页
             is_under_deadline = False  # 是否在限期下面,若在，停止循环
             # 解析获取时间
-            time = self.parse_info_record_time(article)
-            is_exist, is_next_page, is_under_deadline = self.is_time_exist(time)
+            date = self.parse_info_record_time(article)
+            is_exist, is_next_page, is_under_deadline = self.is_time_exist(date)
             # 通过时间判断该文章是否已存进数据库
-            if is_exist is not True:
+            if is_exist is not True:  # 判断文章是否已经爬取过
                 item = RobotOfWeekItem()
                 # url
-                url = article.xpath('h3//a/@href').extract_first("")
-                item[RobotOfWeekItem.LINK] = url
-                print(url)
+                url = self.parse_url(article, item)
+                # 分类
+                self.parse_category(article, item)
                 # 概述
-                item[RobotOfWeekItem.SUMMARY] = article.xpath('p/span/text()').extract_first("")
+                self.parse_summary(article, item)
                 # 发布时间
                 item[RobotOfWeekItem.RELEASE_TIME] = time
                 yield Request(url=url, meta={"item": item}, callback=self.parse_articleInfo)
-            if is_next_page and is_request_flag is not True:
+            if is_next_page and is_request_flag is not True:  # 判断是否爬取下一页
                 next_page = self.bash_url + (sel.xpath("//div [@class='page']//a[last()]/@href").extract())[0]
                 yield Request(url=next_page, callback=self.parse_listInfo)
                 is_request_flag = True
-            if is_under_deadline:
+            if is_under_deadline:  # 判断是否已超出了最低期限，只能容忍两次。
                 tolerance_value -= 1
                 if tolerance_value < 0:
                     break
@@ -63,14 +66,12 @@ class RobotContentSpider(scrapy.Spider):
         sel = Selector(response)
         item = response.meta["item"]
         # 标题
-        title = sel.xpath('//div [@class="article_left"]/h1/text()').extract()
-        item[RobotOfWeekItem.TITLE] = title[0]
+        self.parse_title(sel, item)
         # 导读
-        item[RobotOfWeekItem.READING_GUIDANCE] = sel.xpath('//div [@class="simple"]/p').xpath('string(.)').extract()
+        self.parse_reading_guidance(sel, item)
         # 提取页码
         page_url = response.url
-        page = []
-        page.append(page_url)
+        page = [page_url]
         if page[0][-7] == '_':
             page[0] = int(page[0][-6])
             item['judge'] = 0
@@ -84,6 +85,9 @@ class RobotContentSpider(scrapy.Spider):
 
         # 爬取文章内容
         self.parse_article_cotent(item, sel)
+
+        # 记录爬取时间
+        item[RobotOfWeekItem.RECORD_TIME] = time.localtime(time.time())
 
         # 判断正文是否有下一页
         next_page = sel.xpath('//span [@id="nextPage"]/a/@href').extract_first()
@@ -142,7 +146,7 @@ class RobotContentSpider(scrapy.Spider):
         return time
 
     # 判断文章是否以爬取
-    def is_time_exist(self, time):
+    def is_time_exist(self, date):
         '''
         通过文章的发布时间判断是否已经存在于数据库
         :param time:
@@ -151,11 +155,49 @@ class RobotContentSpider(scrapy.Spider):
         is_exist = True  # 是否已存在
         is_next_page = False  # 是否爬取下一页
         is_under_deadline = False  # 是否在限期下面
-        if VariableSettings.DEADLINE_TIME > time:
+        deadline_time = VariableSettings.DEADLINE_TIME
+        if deadline_time > date:
             is_under_deadline = True
-        elif VariableSettings.TIME_LIST.__contains__(time):
+        elif VariableSettings.TIME_LIST.__contains__(date):
             is_next_page = True
         else:
             is_exist = False
             is_next_page = True
         return is_exist, is_next_page, is_under_deadline
+
+    # 爬取url
+    def parse_url(self, article, item):
+        url = article.xpath('h3//a/@href').extract_first("")
+        item[RobotOfWeekItem.LINK] = url
+        print(url)
+        return url
+
+    # 爬取分类
+    def parse_category(self, html, item):
+        category_name = html.xpath(
+            'div [@class="tag"]//span [@class="date"]/a/text()').extract_first("").strip()
+        item[RobotOfWeekItem.CATEGORY_NAME] = category_name
+        category_dict = VariableSettings.CATEGORY_DICT
+        category_id = category_dict.get(category_name)
+        if category_id is None:
+            category_id = Category.update(category_name)
+        item[RobotOfWeekItem.CATEGORY_ID] = category_id
+        return category_name
+
+    # 概述
+    def parse_summary(self, html, item):
+        summary = html.xpath('p/span/text()').extract_first("")
+        item[RobotOfWeekItem.SUMMARY] = summary
+        return summary
+
+    # 标题
+    def parse_title(self, html, item):
+        title = html.xpath('//div [@class="article_left"]/h1/text()').extract_first()
+        item[RobotOfWeekItem.TITLE] = title
+        return title
+
+    # 导读
+    def parse_reading_guidance(self, html, item):
+        guidance = html.xpath('//div [@class="simple"]/p').xpath('string(.)').extract()
+        item[RobotOfWeekItem.READING_GUIDANCE] = guidance
+        return guidance
