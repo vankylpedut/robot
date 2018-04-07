@@ -31,12 +31,14 @@ class RobotOfweekPipeline(object):
         record_time = item[RobotOfWeekItem.RECORD_TIME]
         category_name = item[RobotOfWeekItem.CATEGORY_NAME]
         category_id = item[RobotOfWeekItem.CATEGORY_ID]
+        source = item[RobotOfWeekItem.SOURCE]
         cursor = conn.cursor()
         cursor.execute(
             'insert into '
-            'information(info_link, info_title, info_summary, info_release_time, info_record_time, info_category_id) '
-            'values(%s,%s,%s,%s,%s,%s)',
-            (url, title, summary, release_time, record_time, category_id)
+            'information(info_link, info_title, info_summary, '
+            'info_release_time, info_record_time, info_category_id, info_source) '
+            'values(%s,%s,%s,%s,%s,%s,%s)',
+            (url, title, summary, release_time, record_time, category_id, source)
         )
         conn.commit()
 
@@ -53,7 +55,8 @@ class RobotOfweekPipeline(object):
             conn.commit()
         else:
             print("查询不到该记录：" + item[RobotOfWeekItem.TITLE])
-            result = re.match('http://robot.ofweek.com/\d+-\d+/ART-\d+-\d+-\d+.html$').group()
+            result = re.match('http://robot.ofweek.com/\d+-\d+/ART-\d+-\d+-\d+.html$',
+                              item[RobotOfWeekItem.LINK]).group()
             if result is not None:
                 self.insert_into_information(conn, item)
                 self.insert_into_infocontent(conn, item)

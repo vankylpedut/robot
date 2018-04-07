@@ -7,10 +7,12 @@
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
 
+from robotwebs.items import RobotOfWeekItem
+
 
 class robotImgDownloadPipeline(ImagesPipeline):
     def get_media_requests(self, item, info):
-        for image_url in item['image_urls']:
+        for image_url in item[RobotOfWeekItem.IMAGE_URLS]:
             yield Request(image_url)
 
     def item_completed(self, results, item, info):

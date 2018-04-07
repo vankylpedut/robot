@@ -22,8 +22,9 @@ deadline_time = datetime.strptime(str_time, datetime_format)
 if settings.IS_FORCE is True:
     # 根据DEADLINE获取文章
     deadline_time = deadline_time
-    result = MysqlTool.get_limit_info_record_time(time=deadline_time)
+    result = MysqlTool.get_limit_info_release_time(time=deadline_time)
     time_list = MysqlTool.tuple_tuple_to_list(result)
+    time_list = MysqlTool.date_list_str_to_date(time_list, '%Y-%m-%d %H:%M:%S')
 else:
     # 从之前记录获取截止日期
     result = MysqlTool.get_info_release_time(30)

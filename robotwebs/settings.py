@@ -112,10 +112,12 @@ MYSQL_CHARSET = 'utf-8'
 # LOG_LEVEL = "INFO"
 
 # 时间参数控制，主要控制爬取的文章发布时间。
-IS_FORCE = False  # 是否强制按照这个时间要求
+IS_FORCE = True  # 是否强制按照这个时间要求
 DEADLINE_IS_TODAY = True  # DEADLINE_TIME 设为今天零点
 DEADLINE_TIME = '2018-3-29 09:00'  # 若数据库没有数据时,该时间往后为爬取的时间范围。
 DATETIME_FORMAT = '%Y-%m-%d %H:%M'  # 时间格式
 
 # 图片路径
-IMAGES_STORE = 'img'
+IMAGES_STORE = '/usr/local/img'  # Linux
+# IMAGES_STORE = 'E:/img'  # windows
+# IMAGES_STORE = 'img'  # 相对路径

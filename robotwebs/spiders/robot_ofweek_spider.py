@@ -24,7 +24,7 @@ class RobotContentSpider(scrapy.Spider):
     def parse(self, response):
         yield Request(url=self.start_url, callback=self.parse_listInfo)
 
-    # 文章列表爬取
+    # 文章列表爬取(1级)
     def parse_listInfo(self, response):
         is_request_flag = False  # 下一页是否已经放入待爬列表
         tolerance_value = 2  # 容忍值
@@ -50,7 +50,7 @@ class RobotContentSpider(scrapy.Spider):
                 # 概述
                 self.parse_summary(article, item)
                 # 发布时间
-                item[RobotOfWeekItem.RELEASE_TIME] = time
+                item[RobotOfWeekItem.RELEASE_TIME] = date
                 yield Request(url=url, meta={"item": item}, callback=self.parse_articleInfo)
             if is_next_page and is_request_flag is not True:  # 判断是否爬取下一页
                 next_page = self.bash_url + (sel.xpath("//div [@class='page']//a[last()]/@href").extract())[0]
@@ -61,7 +61,7 @@ class RobotContentSpider(scrapy.Spider):
                 if tolerance_value < 0:
                     break
 
-    # 文章页面爬取
+    # 文章页面爬取(2级)
     def parse_articleInfo(self, response):
         sel = Selector(response)
         item = response.meta["item"]
@@ -70,21 +70,11 @@ class RobotContentSpider(scrapy.Spider):
         # 导读
         self.parse_reading_guidance(sel, item)
         # 提取页码
-        page_url = response.url
-        page = [page_url]
-        if page[0][-7] == '_':
-            page[0] = int(page[0][-6])
-            item['judge'] = 0
-        else:
-            page[0] = 1
-            item['judge'] = 1
-        item[RobotOfWeekItem.PAGE] = page
-
-        # 爬取时间
-        self.parse_info_record_time2(item, sel)
-
+        self.parse_article_page(response, item)
         # 爬取文章内容
         self.parse_article_cotent(item, sel)
+        # 来源
+        self.parse_article_source(response, item)
 
         # 记录爬取时间
         item[RobotOfWeekItem.RECORD_TIME] = time.localtime(time.time())
@@ -109,7 +99,7 @@ class RobotContentSpider(scrapy.Spider):
         # for i in range(len(item['url'])):
         #     yield scrapy.Request(url=item['url'][i], callback=self.parse)
 
-    # 爬取文章内容
+    # 爬取文章内容以及对文章进行处理
     def parse_article_cotent(self, item, sel):
         item[RobotOfWeekItem.CONTENT] = sel.xpath('//div [@id="articleC"]').extract()
         list_imgs = sel.xpath('//div [@id="articleC"]//img/@src').extract()
@@ -122,7 +112,7 @@ class RobotContentSpider(scrapy.Spider):
             image_guid = list_imgs[i].split('/')[-1]
             # image_guid = times + guid
             # image_guid_path为图片文件地址
-            image_guid_path = IMAGES_STORE + '/full/' + image_guid
+            image_guid_path = IMAGES_STORE + '/robot/' + image_guid
             if list_imgs[i] in item[RobotOfWeekItem.CONTENT][0]:
                 item[RobotOfWeekItem.CONTENT][0] = item[RobotOfWeekItem.CONTENT][0].replace(list_imgs[i],
                                                                                             image_guid_path)  # 第二个参数修改为本地地址
@@ -131,21 +121,21 @@ class RobotContentSpider(scrapy.Spider):
     def parse_info_record_time2(self, item, sel):
         date_str = sel.xpath('//span [@class="sdate"]/text()').extract()
         date_str[0] = date_str[0].replace('\r', '').replace('\n', '').replace('\t', '').replace('  ', '')
-        time = datetime.datetime.strptime(date_str[0], "%Y-%m-%d %H:%M")
-        time = time.strftime("%Y-%m-%d %H:%M")
+        date = datetime.datetime.strptime(date_str[0], "%Y-%m-%d %H:%M")
+        date = time.strftime("%Y-%m-%d %H:%M")
         # print(time)
-        type(time)
-        item[RobotOfWeekItem.RELEASE_TIME] = time
+        type(date)
+        item[RobotOfWeekItem.RELEASE_TIME] = date
 
     # 爬取一级界面时间
     def parse_info_record_time(self, sel):
         date_str = sel.xpath('div [@class="tag"]//span [@class="date"]/text()').extract()
         matchObj = re.search('\d+-\d+-\d+ \d+:\d+', date_str[len(date_str) - 1])
         strtime = matchObj.group()
-        time = datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M")
-        return time
+        date = datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M")
+        return date
 
-    # 判断文章是否以爬取
+    # 判断文章是否已经爬取
     def is_time_exist(self, date):
         '''
         通过文章的发布时间判断是否已经存在于数据库
@@ -156,9 +146,10 @@ class RobotContentSpider(scrapy.Spider):
         is_next_page = False  # 是否爬取下一页
         is_under_deadline = False  # 是否在限期下面
         deadline_time = VariableSettings.DEADLINE_TIME
+        time_list = VariableSettings.TIME_LIST
         if deadline_time > date:
             is_under_deadline = True
-        elif VariableSettings.TIME_LIST.__contains__(date):
+        elif time_list.__contains__(date):
             is_next_page = True
         else:
             is_exist = False
@@ -201,3 +192,21 @@ class RobotContentSpider(scrapy.Spider):
         guidance = html.xpath('//div [@class="simple"]/p').xpath('string(.)').extract()
         item[RobotOfWeekItem.READING_GUIDANCE] = guidance
         return guidance
+
+    # 提取页码
+    def parse_article_page(self, html, item):
+        page_url = html.url
+        page = [page_url]
+        if page[0][-7] == '_':
+            page[0] = int(page[0][-6])
+            item['judge'] = 0
+        else:
+            page[0] = 1
+            item['judge'] = 1
+        item[RobotOfWeekItem.PAGE] = page
+
+    # 来源
+    def parse_article_source(self, html, item):
+        source = html.xpath('//span [@class="laiyuan"]/span/text()').extract_first()
+        item[RobotOfWeekItem.SOURCE] = source
+
