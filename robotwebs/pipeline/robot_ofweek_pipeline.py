@@ -10,16 +10,17 @@ class RobotOfweekPipeline(object):
     The default pipeline invoke function
     '''
     def process_item(self, item, spider):
-        conn = MysqlTool.get_connection()
-        judge = item[RobotOfWeekItem.JUDGE]
-        if judge == 1:
-            self.insert_into_information(conn, item)
-            self.insert_into_infocontent(conn, item)
-            pass
-        else:
-            self.insert_into_infocontent(conn, item)
-            pass
-        conn.close()
+        if isinstance(item, RobotOfWeekItem):
+            conn = MysqlTool.get_connection()
+            judge = item[RobotOfWeekItem.JUDGE]
+            if judge == 1:
+                self.insert_into_information(conn, item)
+                self.insert_into_infocontent(conn, item)
+                pass
+            else:
+                self.insert_into_infocontent(conn, item)
+                pass
+            conn.close()
         return item
 
     # 插入的表，此表需要事先建好
